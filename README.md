@@ -18,8 +18,14 @@ O ecossistema do projeto foi desenvolvido utilizando tecnologias consolidadas no
 
 ### 1. Camada de Hardware e Simulação (Edge Computing)
 * **Microcontrolador ESP32 (Espressif Systems):** Utilizado como o núcleo de processamento local (borda). A escolha do chip baseia-se em sua robustez, baixo custo e conectividade Wi-Fi nativa. No ecossistema, dois módulos operam de forma independente: um dedicado à telemetria analógica (sensor de umidade) e outro ao controle preciso de tempo de ativação da bomba (atuador).
-* **Wokwi Simulation:** Plataforma utilizada para a prototipagem e simulação do hardware em nuvem. O ambiente executa o firmware real compilado para a arquitetura do ESP32, simulando com precisão o comportamento dos pinos de GPIO, conexões de rede Wi-Fi e periféricos (LEDs e potenciômetros).
+* **Wokwi Simulation:** Plataforma utilizada para a prototipagem e simulação do hardware em nuvem. O ambiente executa o firmware real compilado para a arquitetura do ESP32, simulando com precisão o comportamento dos pinos de GPIO, conexões de rede Wi-Fi e periféricos (LEDs e potenciômetros).,
 * **Linguagem C++ (Arduino Core):** Os firmwares foram desenvolvidos em C++ utilizando a IDE do Arduino. A programação emprega técnicas avançadas de controle **não-bloqueante** através da função `millis()`, garantindo que o dispositivo continue processando mensagens de rede (comandos de emergência via MQTT) mesmo enquanto realiza a temporização física da rega.
+
+* Dispositivo Bomba de rega
+ https://wokwi.com/projects/465223429449979905
+
+* Dispositivo de controle de umidade
+ https://wokwi.com/projects/463589779107248129
 
 ### 2. Middleware e Orquestração (Cloud)
 * **Node-RED:** Plataforma de desenvolvimento baseada em fluxos. Atua como o middleware analítico central da arquitetura. Suas principais responsabilidades envolvem:
