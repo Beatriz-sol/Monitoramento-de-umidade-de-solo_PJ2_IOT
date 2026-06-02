@@ -1,0 +1,270 @@
+[
+    {
+        "id": "117c30f4cbc9c24a",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "dea5fae5f8cd9ab9",
+        "type": "inject",
+        "z": "117c30f4cbc9c24a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 410,
+        "y": 120,
+        "wires": [
+            [
+                "eb532e551d194521"
+            ]
+        ]
+    },
+    {
+        "id": "eb532e551d194521",
+        "type": "http request",
+        "z": "117c30f4cbc9c24a",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://api.openweathermap.org/data/2.5/forecast?q=Sao%20Paulo,br&appid=3c16d0edfe6fd907b3b0bccbb154ccc1&units=metric&lang=pt_br",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 470,
+        "y": 240,
+        "wires": [
+            [
+                "04f140c140b9c18c"
+            ]
+        ]
+    },
+    {
+        "id": "04f140c140b9c18c",
+        "type": "function",
+        "z": "117c30f4cbc9c24a",
+        "name": "tratamento de dados da API",
+        "func": "const dadosAtuais = msg.payload.list[0];\n\nconst temperatura = Number(dadosAtuais.main.temp);\nconst descricao = dadosAtuais.weather[0].description;\n\nlet volumeChuvaMM = 0;\nif (dadosAtuais.rain && typeof dadosAtuais.rain[\"3h\"] !== 'undefined') {\n    volumeChuvaMM = Number(dadosAtuais.rain[\"3h\"]);\n}\n\nlet probChuva = 0;\nif (typeof dadosAtuais.pop !== 'undefined') {\n    probChuva = Number(dadosAtuais.pop) * 100;\n}\n\n// 1. Pega a umidade real vinda da memória global (Wokwi Circuito 2)\n// Se não houver dado ainda, assume 0% (seco) para proteger a planta\nlet umidadeSolo = global.get(\"umidade_atual\") || 0;\n\n// Configurações de limite do seu sistema\nconst MAX_LITROS = 2.5;       // Carga máxima de água se o solo estiver em 0%\nconst UMIDADE_ALVO = 60;      // Meta de umidade do solo\nconst AREA_VASO_M2 = 0.4;             \n\nlet necessidadeIdealLitros = 0;\n\n// 🧠 2. CÁLCULO VARIÁVEL E PROPORCIONAL DA NECESSIDADE HÍDRICA\nif (umidadeSolo < UMIDADE_ALVO) {\n    // Calcula a porcentagem de \"secura\" do solo (vai de 0.0 a 1.0)\n    let fatorSecura = (UMIDADE_ALVO - umidadeSolo) / UMIDADE_ALVO;\n    \n    // A necessidade de água escala proporcionalmente à secura\n    necessidadeIdealLitros = MAX_LITROS * fatorSecura;\n} else {\n    necessidadeIdealLitros = 0; // Solo já atingiu ou passou a meta de 60%\n}\n\n// 3. Subtrai a contribuição da chuva prevista (rega complementar)\nlet aguaChuvaLitros = volumeChuvaMM * AREA_VASO_M2;\nlet aguaNecessariaL = necessidadeIdealLitros - aguaChuvaLitros;\n\n// 4. Integração Preditiva: Se a chance de chuva for > 70%, corta a rega pela metade\nif (probChuva > 70 && aguaNecessariaL > 0) {\n    aguaNecessariaL = aguaNecessariaL * 0.5;\n}\n\n// 5. Trava de segurança para evitar volumes negativos\nif (aguaNecessariaL < 0) {\n    aguaNecessariaL = 0;\n}\n\n// Arredonda para duas casas decimais (ex: 1.34)\naguaNecessariaL = Math.round(aguaNecessariaL * 100) / 100;\n\n// ========================================================\n// PREPARAÇÃO DOS DADOS PARA AS SAÍDAS\n// ========================================================\nlet msgClima = { measurement: \"condicao_climatica\", payload: { descricao, temperatura } };\nlet msgVolume = { measurement: \"volume_chuva\", payload: { milimetros: volumeChuvaMM } };\nlet msgProbabilidade = { measurement: \"probabilidade_chuva\", payload: { porcentagem: probChuva } };\nlet msgCalculoLiters = { measurement: \"calculo_rega\", payload: { litros_calculados: aguaNecessariaL } };\n\nlet msgStatus = {\n    measurement: \"status_bomba\",\n    payload: { estado: aguaNecessariaL > 0 ? 1 : 0 }\n};\n\nlet msgMQTT = { payload: aguaNecessariaL > 0 ? aguaNecessariaL.toString() : \"OFF\" };\n\nreturn [\n    [msgClima],         // Saída 1 -> InfluxDB\n    [msgVolume],        // Saída 2 -> InfluxDB\n    [msgProbabilidade], // Saída 3 -> InfluxDB\n    [msgCalculoLiters], // Saída 4 -> InfluxDB\n    [msgStatus],        // Saída 5 -> InfluxDB\n    [msgMQTT]           // Saída 6 -> MQTT Out para o Wokwi\n];",
+        "outputs": 6,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 240,
+        "wires": [
+            [
+                "e79048b715da8920"
+            ],
+            [
+                "e79048b715da8920"
+            ],
+            [
+                "e79048b715da8920"
+            ],
+            [
+                "e79048b715da8920"
+            ],
+            [
+                "e79048b715da8920"
+            ],
+            [
+                "1f6a0f07a775de2a"
+            ]
+        ]
+    },
+    {
+        "id": "e79048b715da8920",
+        "type": "influxdb out",
+        "z": "117c30f4cbc9c24a",
+        "influxdb": "31d60657508afd18",
+        "name": "gravar clima",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "ce2ed27965d5e9dc",
+        "bucket": "dados_clima",
+        "x": 1050,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "47a8543ab505db1c",
+        "type": "mqtt in",
+        "z": "117c30f4cbc9c24a",
+        "name": "Confirmação de Rega",
+        "topic": "mackenzie/bomba/consumo",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "6ef7345ae9565ed8",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 400,
+        "y": 380,
+        "wires": [
+            [
+                "82d40a82019bc35b"
+            ]
+        ]
+    },
+    {
+        "id": "82d40a82019bc35b",
+        "type": "function",
+        "z": "117c30f4cbc9c24a",
+        "name": "function 1",
+        "func": "let litros = Number(msg.payload);\n\n// 1. Mensagem para guardar o histórico de litros consumidos\nlet msgHistorico = {\n    measurement: \"historico_rega_efetuada\",\n    payload: { litros_gastos: litros }\n};\n\n// 2. Mensagem para atualizar o status da bomba para DESLIGADA (0)\nlet msgStatus = {\n    measurement: \"status_bomba\",\n    payload: { estado: 0 }\n};\n\n// Retorna as duas mensagens sequencialmente para o nó do InfluxDB\nreturn [[msgHistorico, msgStatus]];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 380,
+        "wires": [
+            [
+                "e79048b715da8920"
+            ]
+        ]
+    },
+    {
+        "id": "1f6a0f07a775de2a",
+        "type": "mqtt out",
+        "z": "117c30f4cbc9c24a",
+        "name": "Enviar comando da bomba",
+        "topic": "mackenzie/bomba",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "6ef7345ae9565ed8",
+        "x": 1140,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "836e3037d8d772b0",
+        "type": "mqtt in",
+        "z": "117c30f4cbc9c24a",
+        "name": "Escutar Umidade",
+        "topic": "mackenzie/umidade",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "6ef7345ae9565ed8",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 340,
+        "y": 460,
+        "wires": [
+            [
+                "1f34eae46d32a77a"
+            ]
+        ]
+    },
+    {
+        "id": "1f34eae46d32a77a",
+        "type": "function",
+        "z": "117c30f4cbc9c24a",
+        "name": "function 2",
+        "func": "// Recebe o texto do Wokwi e converte para número\nlet umidadeSolo = Number(msg.payload);\n\n// 🚨 A MÁGICA DA MEMÓRIA: Salva o valor para a função principal ler\nglobal.set(\"umidade_atual\", umidadeSolo);\n\n// Prepara para salvar no InfluxDB\nmsg.measurement = \"umidade_solo\";\nmsg.payload = { \n    porcentagem: umidadeSolo \n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 460,
+        "wires": [
+            [
+                "e79048b715da8920"
+            ]
+        ]
+    },
+    {
+        "id": "31d60657508afd18",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "inflixdbcloud",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "https://us-east-1-1.aws.cloud2.influxdata.com",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "6ef7345ae9565ed8",
+        "type": "mqtt-broker",
+        "name": "HiveMQ Public",
+        "broker": "broker.hivemq.com",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "79993c9605655e44",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    }
+]
