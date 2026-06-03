@@ -12,6 +12,9 @@ O cérebro da aplicação cruza a umidade real do solo com previsões meteoroló
 
 Totalmente alinhado com o **ODS 15 (Objetivos de Desenvolvimento Sustentável da ONU - Vida Terrestre)**, este ecossistema demonstra como a integração entre microcontroladores, APIs climáticas e bancos de dados temporais pode transformar a automação agrícola, evitando o sufocamento das raízes por excesso de água e garantindo um manejo hídrico altamente eficiente.
 
+## Link do Video demonstrando o funcionamento do projeto
+https://youtu.be/LoRJ8quBXnQ
+
 ## 🛠️ Descritivo Técnico das Tecnologias
 
 O ecossistema do projeto foi desenvolvido utilizando tecnologias consolidadas no mercado de Internet das Coisas (IoT), computação em nuvem e análise de dados em tempo real. A integração foi projetada para garantir baixo consumo de banda, assincronismo e alta escalabilidade.
