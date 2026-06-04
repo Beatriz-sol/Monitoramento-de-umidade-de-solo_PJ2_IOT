@@ -36,6 +36,7 @@ O ecossistema do projeto foi desenvolvido utilizando tecnologias consolidadas no
     * Gerenciamento de contexto de memória global (`global.set` / `global.get`) para persistir estados entre fluxos assíncronos.
     * Processamento do motor de regras agronômicas através de funções personalizadas em **JavaScript (ECMAScript 6)**.
     * Roteamento dinâmico de dados entre os protocolos HTTP, MQTT e a API nativa do banco de dados.
+    * <img width="1495" height="648" alt="image" src="https://github.com/user-attachments/assets/5b1d6904-b3d6-4994-b8ff-54ab035ade75" />
 
 ### 3. Protocolo e Infraestrutura de Comunicação
 * **MQTT (Message Queuing Telemetry Transport):** Protocolo de comunicação de rede baseado no modelo de **Publicação/Assinatura (Pub/Sub)**. Opera sobre a camada TCP/IP e foi escolhido por sua extrema leveza, sobrecarga de rede (*overhead*) mínima e eficiência em redes IoT instáveis.
