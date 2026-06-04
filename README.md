@@ -130,6 +130,38 @@ Para garantir que o fluxo está respeitando a ordem cronológica da memória e o
 
 ---
 
+## 📊 6. Integração e Visualização Avançada (Grafana)
+
+Embora o InfluxDB Cloud possua o seu próprio *Data Explorer*, o nosso ecossistema conta com um painel de visualização avançado e interativo construído no **Grafana**. 
+
+Para replicar o nosso dashboard profissional na sua máquina ou instância Cloud, siga estes passos:
+
+### Passo 6.1: Configurar a Conexão com o InfluxDB (Data Source)
+1. Acesse a sua instância do **Grafana** (local ou nuvem).
+2. No menu lateral esquerdo, vá em **Connections > Data Sources** e clique em **Add data source**.
+3. Pesquise e selecione **InfluxDB**.
+4. Na configuração, mude a linguagem de consulta (Query Language) para **Flux**.
+5. Insira as suas credenciais do InfluxDB Cloud:
+   * **URL:** A URL da sua organização (ex: `https://us-east-1-1.aws.cloud2.influxdata.com`).
+   * **Organization:** O e-mail ou nome da sua organização no Influx.
+   * **Token:** O seu token de API com permissão de leitura.
+   * **Default Bucket:** `dados_clima`
+6. Clique em **Save & Test** e certifique-se de que a conexão foi validada com sucesso (mensagem verde).
+
+### Passo 6.2: Importar o Dashboard
+1. No repositório deste projeto, localize o arquivo do painel dentro da pasta `/grafana`.
+2. No menu lateral do Grafana, passe o mouse sobre **Dashboards** e clique em **Import**.
+3. Você tem duas opções:
+   * Clicar em **Upload JSON file** e selecionar o arquivo baixado.
+   * Ou abrir o arquivo `.json` no bloco de notas, copiar todo o código e colar na caixa **Import via panel json**.
+4. Clique em **Load**.
+5. Na tela seguinte, o Grafana pedirá para você associar as tabelas. No campo "InfluxDB" (ou variável semelhante que aparecer na tela), selecione o *Data Source* que você acabou de criar no Passo 6.1.
+6. Clique em **Import**.
+
+Pronto! O seu painel do Grafana carregará instantaneamente com os mesmos medidores de litros, gráficos temporais de umidade e o alerta visual de "Regando/Desligada" que construímos para o projeto.
+
+---
+
  **Pronto! O seu ecossistema IoT de eficiência hídrica está operando com sucesso.**
 
 
